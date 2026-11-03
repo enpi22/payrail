@@ -1,0 +1,13 @@
+target/
+build/
+.gradle/
+*.class
+__pycache__/
+.venv/
+.env
+*.tfstate
+*.tfstate.*
+.terraform/
+.idea/
+.vscode/
+node_modules/
