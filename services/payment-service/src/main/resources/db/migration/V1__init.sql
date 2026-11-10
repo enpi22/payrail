@@ -101,7 +101,7 @@ CREATE TABLE ledger_transactions (
 
 -- Signed amounts: debits positive, credits negative. Every transaction must sum to zero.
 CREATE TABLE ledger_entries (
-    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id             UUID  PRIMARY KEY DEFAULT gen_random_uuid(),
     transaction_id UUID NOT NULL REFERENCES ledger_transactions(id),
     account_id     UUID NOT NULL REFERENCES ledger_accounts(id),
     amount_minor   BIGINT NOT NULL CHECK (amount_minor <> 0),

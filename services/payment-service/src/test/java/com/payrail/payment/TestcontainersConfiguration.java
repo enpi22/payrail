@@ -8,7 +8,7 @@ import org.testcontainers.utility.DockerImageName;
 
 /** Starts a real, throwaway PostgreSQL in Docker for tests, same version as production. */
 @TestConfiguration(proxyBeanMethods = false)
-class TestcontainersConfiguration {
+public class TestcontainersConfiguration {
 
     @Bean
     @ServiceConnection
