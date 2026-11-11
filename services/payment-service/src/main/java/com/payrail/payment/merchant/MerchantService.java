@@ -3,6 +3,8 @@ package com.payrail.payment.merchant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 public class MerchantService {
 
@@ -29,5 +31,12 @@ public class MerchantService {
 
         return new MerchantCreatedResponse(
                 merchant.getId(), merchant.getName(), key.fullKey(), merchant.getWebhookSecret());
+    }
+
+    @Transactional(readOnly = true)
+    public MerchantResponse getMerchant(UUID merchantId) {
+        Merchant merchant = merchantRepository.findById(merchantId)
+                .orElseThrow(() -> new IllegalStateException("Authenticated merchant not found: " + merchantId));
+        return new MerchantResponse(merchant.getId(), merchant.getName(), merchant.getWebhookUrl(), merchant.getCreatedAt());
     }
 }

@@ -50,6 +50,11 @@ public class ApiKey {
 
     public boolean isActive() { return revokedAt == null; }
 
+    public void revoke() {
+        if (revokedAt == null) {
+            revokedAt = Instant.now();
+        }
+    }
     public UUID getId() { return id; }
     public Merchant getMerchant() { return merchant; }
     public String getKeyPrefix() { return keyPrefix; }

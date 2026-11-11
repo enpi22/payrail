@@ -20,7 +20,7 @@ import java.util.HexFormat;
 public class ApiKeyGenerator {
 
     static final String KEY_PREFIX_START = "pr_test_";
-    static final int PREFIX_LENGTH = KEY_PREFIX_START.length() + 8;
+    public static final int PREFIX_LENGTH = KEY_PREFIX_START.length() + 8;
 
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final Base64.Encoder BASE64_URL = Base64.getUrlEncoder().withoutPadding();
