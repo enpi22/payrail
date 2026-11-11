@@ -54,9 +54,11 @@ class MerchantControllerTest {
     @Test
     void rejectsBlankName() throws Exception {
         mockMvc.perform(post("/v1/merchants").contentType(APPLICATION_JSON).content("""
-                        {"name": "  "}
-                        """))
-                .andExpect(status().isBadRequest());
+                    {"name": "  "}
+                    """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("validation_failed"))
+                .andExpect(jsonPath("$.error.field_errors[0].field").value("name"));
     }
 
     @Test
@@ -66,4 +68,11 @@ class MerchantControllerTest {
                         """))
                 .andExpect(status().isBadRequest());
     }
+    @Test
+    void rejectsMalformedJson() throws Exception {
+        mockMvc.perform(post("/v1/merchants").contentType(APPLICATION_JSON).content("{not json"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("malformed_request"));
+    }
+
 }
