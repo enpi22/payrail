@@ -58,6 +58,22 @@ public class Order {
         this.currency = Objects.requireNonNull(currency, "currency");
         this.receipt = Objects.requireNonNull(receipt, "receipt");
         this.status = OrderStatus.CREATED;
+
+    }
+    /** A payment attempt has started. */
+    public void markAttempted() {
+        if (status == OrderStatus.PAID) {
+            throw new IllegalStateException("Order " + id + " is already paid");
+        }
+        status = OrderStatus.ATTEMPTED;
+    }
+
+    /** A payment for this order succeeded. */
+    public void markPaid() {
+        if (status == OrderStatus.PAID) {
+            throw new IllegalStateException("Order " + id + " is already paid");
+        }
+        status = OrderStatus.PAID;
     }
 
     public UUID getId() { return id; }

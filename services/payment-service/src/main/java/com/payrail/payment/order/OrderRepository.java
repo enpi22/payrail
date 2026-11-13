@@ -12,6 +12,7 @@ import java.util.UUID;
 public interface OrderRepository extends Repository<Order, UUID> {
 
     Order save(Order order);
+    Order saveAndFlush(Order order);
 
     Optional<Order> findByIdAndMerchantId(UUID id, UUID merchantId);
 }

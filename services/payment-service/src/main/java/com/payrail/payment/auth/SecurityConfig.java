@@ -27,6 +27,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/v1/merchants").permitAll() // signup (admin-only later)
                         .requestMatchers("/actuator/health", "/error").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/provider-callbacks/**").permitAll() // verified by provider secret instead
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(entryPoint))
                 .addFilterBefore(new ApiKeyAuthenticationFilter(apiKeyRepository, entryPoint),

@@ -1,3 +1,9 @@
+payrail:
+  providers:
+    mock:
+      auto-callback: true
+      callback-delay-ms: 2000
+      callback-secret: ${MOCK_PROVIDER_SECRET:mock-secret-change-me}
 spring:
   application:
     name: payment-service

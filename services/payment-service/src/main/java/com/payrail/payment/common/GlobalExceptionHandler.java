@@ -10,6 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.web.ErrorResponse;
 
 import java.util.List;
 
@@ -54,8 +56,28 @@ public class GlobalExceptionHandler {
     /** Anything unexpected. Log everything, reveal nothing. */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception ex) {
+        if (ex instanceof ErrorResponse errorResponse) {
+            HttpStatusCode status = errorResponse.getStatusCode();
+            return ResponseEntity.status(status).body(ApiErrorResponse.of(codeFor(status), reasonFor(status)));
+        }
         log.error("Unhandled exception", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 ApiErrorResponse.of("internal_error", "Something went wrong. Please try again."));
     }
+
+    private static String codeFor(HttpStatusCode status) {
+        return switch (status.value()) {
+            case 404 -> "not_found";
+            case 405 -> "method_not_allowed";
+            case 406 -> "not_acceptable";
+            case 415 -> "unsupported_media_type";
+            default -> "request_error";
+        };
+    }
+
+    private static String reasonFor(HttpStatusCode status) {
+        HttpStatus known = HttpStatus.resolve(status.value());
+        return known != null ? known.getReasonPhrase() : "Request could not be processed";
+    }
+
 }
