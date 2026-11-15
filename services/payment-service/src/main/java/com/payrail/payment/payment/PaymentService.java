@@ -2,9 +2,11 @@ package com.payrail.payment.payment;
 
 import com.payrail.payment.common.ApiException;
 import com.payrail.payment.common.ConstraintViolations;
+import com.payrail.payment.ledger.LedgerService;
 import com.payrail.payment.order.Order;
 import com.payrail.payment.order.OrderRepository;
 import com.payrail.payment.order.OrderStatus;
+import com.payrail.payment.outbox.OutboxService;
 import com.payrail.payment.payment.provider.ChargeRequest;
 import com.payrail.payment.payment.provider.ChargeResult;
 import com.payrail.payment.payment.provider.PaymentProvider;
@@ -27,13 +29,19 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final PaymentProvider provider;
     private final TransactionTemplate transactionTemplate;
+    private final LedgerService ledgerService;
+    private final OutboxService outboxService;
+
 
     public PaymentService(PaymentRepository paymentRepository, OrderRepository orderRepository,
-                          PaymentProvider provider, TransactionTemplate transactionTemplate) {
+                          PaymentProvider provider, TransactionTemplate transactionTemplate,
+                          LedgerService ledgerService, OutboxService outboxService) {
         this.paymentRepository = paymentRepository;
         this.orderRepository = orderRepository;
         this.provider = provider;
         this.transactionTemplate = transactionTemplate;
+        this.ledgerService = ledgerService;
+        this.outboxService = outboxService;
     }
 
     /**
@@ -84,6 +92,8 @@ public class PaymentService {
             case SUCCEEDED -> {
                 payment.markSucceeded();
                 orderOf(payment).markPaid();
+                ledgerService.recordPaymentCaptured(payment.getId(), payment.getMerchantId(),
+                        payment.getProvider(), payment.getAmountMinor());
                 log.info("Payment succeeded paymentId={} orderId={}", payment.getId(), payment.getOrderId());
             }
             case FAILED -> {
@@ -91,7 +101,8 @@ public class PaymentService {
                 log.info("Payment failed paymentId={} reason={}", payment.getId(), payment.getFailureCode());
             }
         }
-        // Saturday: ledger postings and the outbox event are added here, in this same transaction.
+        // Same transaction as the state change: the event exists if and only if the change committed.
+        publishEvent(payment);
     }
 
     private Payment createPendingPayment(UUID merchantId, CreatePaymentRequest request) {
@@ -123,15 +134,21 @@ public class PaymentService {
             case ChargeResult.Declined declined -> {
                 payment.markProcessing(declined.providerRef());
                 payment.markFailed(declined.failureCode());
+                publishEvent(payment);
             }
             case ChargeResult.TimedOut timedOut -> {
                 log.warn("Provider timed out; outcome unknown, awaiting callback paymentId={}", paymentId);
                 payment.markProcessing(null);
             }
+
         }
         return PaymentResponse.from(payment);
     }
 
+    private void publishEvent(Payment payment) {
+        String type = payment.getStatus() == PaymentStatus.SUCCEEDED ? "payment.succeeded" : "payment.failed";
+        outboxService.record("payment", payment.getId(), payment.getMerchantId(), type, PaymentResponse.from(payment));
+    }
     private Order orderOf(Payment payment) {
         return orderRepository.findByIdAndMerchantId(payment.getOrderId(), payment.getMerchantId())
                 .orElseThrow(() -> new IllegalStateException("Order missing for payment " + payment.getId()));

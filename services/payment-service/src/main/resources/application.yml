@@ -4,6 +4,10 @@ payrail:
       auto-callback: true
       callback-delay-ms: 2000
       callback-secret: ${MOCK_PROVIDER_SECRET:mock-secret-change-me}
+    fees:
+      basis-points: 200   # 2%
+    outbox:
+      poll-interval-ms: 500
 spring:
   application:
     name: payment-service
@@ -28,7 +32,12 @@ spring:
       accept-float-as-int: false
     mapper:
       allow-coercion-of-scalars: false
-
+kafka:
+  bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+  producer:
+    acks: all
+    properties:
+      enable.idempotence: true
 server:
   port: 8080
 
