@@ -8,6 +8,13 @@ payrail:
       basis-points: 200   # 2%
     outbox:
       poll-interval-ms: 500
+    webhooks:
+      poll-interval-ms: 1000
+      batch-size: 50
+      lease-seconds: 60
+      request-timeout-ms: 10000
+      retry-delays-seconds: 60,300,1800,7200,21600   # 1m, 5m, 30m, 2h, 6h → 6 attempts, then DEAD
+      allow-local-targets: ${WEBHOOKS_ALLOW_LOCAL_TARGETS:false}
 spring:
   application:
     name: payment-service
@@ -38,6 +45,8 @@ kafka:
     acks: all
     properties:
       enable.idempotence: true
+  consumer:
+    auto-offset-reset: earliest
 server:
   port: 8080
 

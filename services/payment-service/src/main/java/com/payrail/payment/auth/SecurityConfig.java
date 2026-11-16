@@ -25,9 +25,10 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/v1/merchants").permitAll() // signup (admin-only later)
+                        .requestMatchers(HttpMethod.POST, "/v1/merchants").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/index.html").permitAll()// verified by provider secret instead// signup (admin-only later)
                         .requestMatchers("/actuator/health", "/error").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/v1/provider-callbacks/**").permitAll() // verified by provider secret instead
+                        .requestMatchers(HttpMethod.POST, "/v1/provider-callbacks/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(entryPoint))
                 .addFilterBefore(new ApiKeyAuthenticationFilter(apiKeyRepository, entryPoint),
