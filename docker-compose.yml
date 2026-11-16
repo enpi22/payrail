@@ -47,5 +47,20 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
     depends_on: [ kafka ]
 
+  payment-service:
+    build: ./services/payment-service
+    profiles: ["app"]          # only starts when asked for, so IntelliJ development still works
+    ports: ["8080:8080"]
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/payrail
+      DB_USER: payrail
+      DB_PASSWORD: payrail
+      KAFKA_BOOTSTRAP: kafka:29092
+      MOCK_PROVIDER_SECRET: mock-secret-change-me
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
 volumes:
   pgdata:
