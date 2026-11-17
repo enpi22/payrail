@@ -1,0 +1,2 @@
+repo_url   = "https://github.com/enpi22/payrail.git"
+my_ip_cidr = "49.43.227.103"   # find yours with: curl -s https://checkip.amazonaws.com
